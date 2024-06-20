@@ -244,15 +244,16 @@ public class Server extends JFrame {
                         int ed = message.indexOf(" ");
                         String username = message.substring(st + 1, ed);
                         String msg = message.substring(ed + 1);
+                        System.out.println(username + " " + msg);
                         for (ClientEvent client : clients) {
                             if (client.myName.equals(username)) {
-                                client.sendMessage(msg);
+                                client.sendMessage("private:" + myName + " " + msg);
                                 break;
                             }
                         }
 
                     }
-                    else if (message.contains("message")) {
+                    else if (message.contains("message:")) {
                         String content = mp.get(socket) + "：" + message.substring(8);
                         // 收到客户端消息，广播给所有客户端
                         broadcastMessage(content, this);

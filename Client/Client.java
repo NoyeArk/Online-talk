@@ -140,7 +140,10 @@ public class Client extends JFrame {
             messageField.setText(""); // 清空消息输入框
 
             // 将消息发送给服务器
-            out.println("messageOnly" + username + " " + message);
+            if (username.equals("群聊"))
+                out.println("message:" + message);
+            else
+                out.println("messageOnly:" + username + " " + message);
         }
     }
 
@@ -152,6 +155,8 @@ public class Client extends JFrame {
 
         tabbedPane.addTab(chatUserName, scrollPane);
         mp.put(chatUserName, chatArea);
+
+        tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(chatUserName));
     }
 
     public class IncomingReader implements Runnable {
@@ -175,9 +180,33 @@ public class Client extends JFrame {
                         userListModel.remove(id);
                     }
                     else {
-                        // 展示在界面的聊天区域中
-                        String title = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
-                        mp.get(title).append(message + "\n");
+                        JTextArea chatArea;
+                        // 判断是私聊还是群聊
+                        if (message.contains("private:")) {
+                            int st = message.indexOf(":");
+                            int ed = message.indexOf(" ");
+                            String username = message.substring(st + 1, ed);
+                            String msg = message.substring(ed + 1);
+
+                            if (mp.containsKey(username))
+                                chatArea = mp.get(username);
+                            else {
+                                // 展示一个新的界面
+                                chatArea = new JTextArea();
+                                chatArea.setEditable(false);  // 只读
+                                JScrollPane scrollPane = new JScrollPane(chatArea);
+
+                                tabbedPane.addTab(username, scrollPane);
+                                mp.put(username, chatArea);
+                            }
+                            tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(username));
+                            chatArea.append(username + "：" + msg + "\n");
+                        }
+                        else {
+                            chatArea = mp.get("群聊");
+                            tabbedPane.setSelectedIndex(tabbedPane.indexOfTab("群聊"));
+                            chatArea.append(message + "\n");
+                        }
                     }
                 }
             } catch (IOException e) {
