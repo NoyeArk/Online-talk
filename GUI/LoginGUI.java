@@ -20,6 +20,9 @@ import java.sql.SQLException;
  */
 
 public class LoginGUI extends JFrame {
+    private int width = 600;
+    private int height = 400;
+
     private JTextField usernameField;
     private JPasswordField passwordField;
     // 数据库连接代理
@@ -29,32 +32,56 @@ public class LoginGUI extends JFrame {
         // 实例化数据库代理
         db = new DatabaseConnect();
 
-        setTitle("Chat Room Login");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(450, 300);
-        setLocationRelativeTo(null); // Center the frame on the screen
+        ImageIcon icon = new ImageIcon("img\\logo.png");
+        ImageIcon bg = new ImageIcon("img\\background.jpg");
+        Font font = new Font("黑体", Font.PLAIN, 15);
 
-        // Panel to hold components
+        // 主窗体界面设置
+        this.setTitle("聊天室登录");
+        this.setLayout(null);
+        this.setBounds(0, 0, width, height);
+        this.setIconImage(icon.getImage());
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setLocationRelativeTo(null);
+
+        // 背景图片设置
+        ((JPanel)this.getContentPane()).setOpaque(false);
+        JLabel background = new JLabel();
+        background.setIcon(bg);
+        this.getLayeredPane().add(background, new Integer(Integer.MIN_VALUE));
+
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 1));
+        panel.setOpaque(false);
 
-        // Username input
+        // 用户名输入框
         JPanel usernamePanel = new JPanel(new FlowLayout());
-        JLabel usernameLabel = new JLabel("Username:");
+        JLabel usernameLabel = new JLabel("用户名：");
         usernameField = new JTextField(15);
+
+        usernameLabel.setFont(font);
+        usernameLabel.setForeground(new Color(255, 44, 222));
+
         usernamePanel.add(usernameLabel);
         usernamePanel.add(usernameField);
+        usernamePanel.setBounds(30, 30, 300, 30);
 
-        // Password input
+        // 密码输入框
         JPanel passwordPanel = new JPanel(new FlowLayout());
-        JLabel passwordLabel = new JLabel("Password:");
+        JLabel passwordLabel = new JLabel("密码：");
+        passwordLabel.setFont(font);
+        passwordLabel.setForeground(new Color(255, 44, 222));
         passwordField = new JPasswordField(15);
+
         passwordPanel.add(passwordLabel);
         passwordPanel.add(passwordField);
+        passwordPanel.setBounds(30, 100, 300, 30);
 
-        // Login button
+        // 登录按钮
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton loginButton = new JButton("Login");
+        buttonPanel.setBounds(200, 200, 50, 50);
+
+        JButton loginButton = new JButton("登录");
+
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -82,17 +109,19 @@ public class LoginGUI extends JFrame {
         });
         buttonPanel.add(loginButton);
 
-        // Add components to the main panel
-        panel.add(usernamePanel);
-        panel.add(passwordPanel);
-        panel.add(buttonPanel);
+        // 添加组件到主窗体中
+        add(usernamePanel);
+        add(passwordPanel);
+        add(buttonPanel);
 
-        // Add panel to the frame
-        add(panel);
-
-        // Make the frame visible
         setVisible(true);
     }
+
+//    public void paint(Graphics g) {
+//        ImageIcon bg = new ImageIcon("img\\background.jpg");
+//        super.paint(g);
+//        g.drawImage(bg.getImage(), 0, 0, null);
+//    }
 
     private void loginSuccess() {
         String serverAddr = "localhost";
@@ -105,11 +134,6 @@ public class LoginGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new LoginGUI();
-            }
-        });
+        new LoginGUI();
     }
 }

@@ -18,7 +18,7 @@ public class DatabaseConnect {
     public DatabaseConnect() {
         try {
             // 注册JDBC驱动程序
-            Class.forName("com.mysql.jdbc.Driver");
+            // Class.forName("com.mysql.jdbc.Driver");
 
             // 打开连接
             System.out.println("连接到数据库...");
@@ -30,7 +30,6 @@ public class DatabaseConnect {
             // 处理Class.forName错误
             e.printStackTrace();
         }
-        System.out.println("Goodbye!");
     }
 
     public boolean querySno(String sno, String pwd) throws SQLException {
