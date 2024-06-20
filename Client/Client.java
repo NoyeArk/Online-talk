@@ -10,6 +10,8 @@
 package Client;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -28,11 +30,19 @@ public class Client extends JFrame {
     private JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
+    private JList<String> userList;
+    private DefaultListModel<String> userListModel;
 
-    public Client(String serverAddress, int serverPort) throws IOException {
+    public Client() {
+        createUi();
+    }
+
+    public Client(String username, String serverAddress, int serverPort) throws IOException {
         socket = new Socket(serverAddress, serverPort);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
+
+        out.println(username);
 
         // 创建界面
         createUi();
@@ -52,7 +62,7 @@ public class Client extends JFrame {
 
         // 聊天区域（中间）
         chatArea = new JTextArea();
-        chatArea.setEditable(false); // 只读
+        chatArea.setEditable(false);  // 只读
         JScrollPane scrollPane = new JScrollPane(chatArea);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -68,6 +78,17 @@ public class Client extends JFrame {
 
         // 添加底部面板到窗口底部
         add(bottomPanel, BorderLayout.SOUTH);
+
+        // 左侧用户区域
+        userListModel = new DefaultListModel<>();
+        userList = new JList<>(userListModel);
+        userList.setFont(new Font("黑体", Font.PLAIN, 14));
+        JScrollPane userScrollPane = new JScrollPane(userList);
+        userScrollPane.setBorder(BorderFactory.createTitledBorder(new LineBorder(Color.lightGray, 1), "其他在线用户",
+                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
+                new Font("黑体", Font.BOLD, 16), Color.darkGray));
+        userScrollPane.setPreferredSize(new Dimension(200, 0));
+        add(userScrollPane, BorderLayout.WEST);
 
         // 发送按钮事件监听
         sendButton.addActionListener(new ActionListener() {
@@ -111,21 +132,22 @@ public class Client extends JFrame {
     }
 
     public static void main(String[] args) {
-        String serverAddress = "localhost"; // 服务器地址
-        int serverPort = 10086; // 服务器端口
-
-        try {
-            Client client = new Client(serverAddress, serverPort);
-
-            // 从命令行读取消息并发送给服务器
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-            String message;
-            while ((message = reader.readLine()) != null) {
-                client.sendMessage();
-            }
-        } catch (IOException e) {
-            System.out.println("Error connecting to server: " + e.getMessage());
-        }
+        new Client();
+//        String serverAddress = "localhost"; // 服务器地址
+//        int serverPort = 10086; // 服务器端口
+//
+//        try {
+//            Client client = new Client(serverAddress, serverPort);
+//
+//            // 从命令行读取消息并发送给服务器
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+//
+//            String message;
+//            while ((message = reader.readLine()) != null) {
+//                client.sendMessage();
+//            }
+//        } catch (IOException e) {
+//            System.out.println("Error connecting to server: " + e.getMessage());
+//        }
     }
 }

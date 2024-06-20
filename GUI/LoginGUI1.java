@@ -19,7 +19,7 @@ import java.sql.SQLException;
  * @Version: 1.0
  */
 
-public class LoginGUI extends JFrame {
+public class LoginGUI1 extends JFrame {
     private int width = 600;
     private int height = 400;
 
@@ -28,7 +28,7 @@ public class LoginGUI extends JFrame {
     // 数据库连接代理
     DatabaseConnect db;
 
-    public LoginGUI() {
+    public LoginGUI1() {
         // 实例化数据库代理
         db = new DatabaseConnect();
 
@@ -93,13 +93,13 @@ public class LoginGUI extends JFrame {
                 // 从数据库中查询是否存在对应的sno和password
                 try {
                     if (db.querySno(username, password)) {
-                        JOptionPane.showMessageDialog(LoginGUI.this,
+                        JOptionPane.showMessageDialog(LoginGUI1.this,
                                 "登录成功!");
                         // 隐藏界面
                         dispose();
                         loginSuccess(username);
                     } else {
-                        JOptionPane.showMessageDialog(LoginGUI.this,
+                        JOptionPane.showMessageDialog(LoginGUI1.this,
                                 "Login failed. Please check your username and password.",
                                 "Login Failed", JOptionPane.ERROR_MESSAGE);
                     }
@@ -131,6 +131,6 @@ public class LoginGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        new LoginGUI();
+        new LoginGUI1();
     }
 }

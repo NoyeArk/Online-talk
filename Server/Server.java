@@ -9,6 +9,9 @@
 
 package Server;
 
+import Client.Client;
+import com.mysql.cj.util.StringUtils;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -23,11 +26,14 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class Server extends JFrame {
     private ServerSocket serverSocket;
+    private Map<Socket, String> mp = new HashMap<>();
     private List<ClientEvent> clients = new ArrayList<>();
 
     // 界面相关
@@ -48,6 +54,9 @@ public class Server extends JFrame {
                 Socket socket = serverSocket.accept();
                 System.out.println("新的客户端发送请求：" + socket);
 
+                // 保存这个socket
+                mp.put(socket, "null");
+
                 // 创建一个新的线程用于处理客户的请求
                 ClientEvent client = new ClientEvent(socket);
 
@@ -57,6 +66,9 @@ public class Server extends JFrame {
 
                 // 在界面中显示该用户
                 userListModel.addElement("用户111");
+
+                // 广播给其他用户有一个用户上线
+//                broadcastMessage();
 
             } catch (IOException e) {
                 System.out.println("Error in server: " + e.getMessage());
@@ -161,7 +173,7 @@ public class Server extends JFrame {
         }
     }
 
-    // 广播消息给所有连接的客户端
+    // 当一个用户发送消息时将该消息给所有连接的客户端
     public synchronized void broadcastMessage(String message, ClientEvent excludeClient) {
         for (ClientEvent client : clients) {
             if (client != excludeClient) {
@@ -197,6 +209,11 @@ public class Server extends JFrame {
                 String inputLine;
                 while ((inputLine = send.readLine()) != null) {
                     System.out.println("收到客户端消息：" + inputLine);
+                    if (inputLine.contains("###")) {
+                        String username = inputLine.substring(3);
+                        mp.put(socket, username);
+                    }
+//                    System.out.println("我的sokcet是：" + this.socket);
                     // 收到客户端消息，广播给所有客户端
                     broadcastMessage(inputLine, this);
                     // 展示在消息日志中
@@ -220,7 +237,7 @@ public class Server extends JFrame {
     }
 
     public static void main(String[] args) {
-        int port = 10086; // 指定服务器监听端口
+        int port = 10086;
         try {
             Server server = new Server(port);
             server.start();

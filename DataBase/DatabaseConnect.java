@@ -36,10 +36,9 @@ public class DatabaseConnect {
         // 执行查询
         System.out.println("查询sno为" + sno);
         Statement stmt = conn.createStatement();
-        System.out.println("34324");
 
         String sql;
-        sql = "SELECT password FROM user where sno=" + sno;
+        sql = "SELECT password FROM user where sno='" + sno + "'";
         ResultSet rs = stmt.executeQuery(sql);
 
         // 处理结果集
