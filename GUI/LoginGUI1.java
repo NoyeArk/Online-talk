@@ -1,9 +1,9 @@
 /**
  * @BelongsProject: online_talk
  * @BelongsPackage: GUI
- * @Author: horiki
+ * @Author: 弘树
  * @CreateTime: 2024-06-19  18:56
- * @Description: 客户端代码实现
+ * @Description: 登录界面绘制
  * @Version: 1.0
  */
 
@@ -80,7 +80,7 @@ public class LoginGUI1 extends JFrame {
         loginButton.addActionListener(e -> {
             String username = usernameField.getText();
             char[] passwordChars = passwordField.getPassword();
-            String password = new String(passwordChars);
+            String password = new String(passwordChars); // Convert char[] to String
 
             // 从数据库中查询是否存在对应的sno和password
             try {
@@ -89,6 +89,11 @@ public class LoginGUI1 extends JFrame {
                     // 隐藏界面
                     dispose();
                     client.loginSuccess();
+                }
+                else {
+                    JOptionPane.showMessageDialog(LoginGUI1.this,
+                            "登录失败，请检查用户名或密码是否正确",
+                            "Login Failed", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (IOException ex) {
                 throw new RuntimeException(ex);

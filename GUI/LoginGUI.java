@@ -1,7 +1,7 @@
 /**
  * @BelongsProject: online_talk
  * @BelongsPackage: GUI
- * @Author: horiki
+ * @Author: 弘树
  * @CreateTime: 2024-06-19  18:56
  * @Description: 登录界面绘制
  * @Version: 1.0
