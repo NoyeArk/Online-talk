@@ -1,28 +1,31 @@
-package DataBase;
-
-import java.sql.*;
-import java.util.Objects;
-
 /**
  * @BelongsProject: online_talk
- * @BelongsPackage: DataBase
- * @Author: yanhongwei
+ * @BelongsPackage: com.DataBase
+ * @Author: 弘树
  * @CreateTime: 2024-06-19  19:13
- * @Description: TODO
+ * @Description: 操作数据库的代码实现
  * @Version: 1.0
  */
 
+package com.DataBase;
+
+import java.sql.*;
+
+
 public class DatabaseConnect {
+    private String sql;
+    private Statement stmt;
     private static Connection conn = null;
 
     public DatabaseConnect() {
         try {
             // 注册JDBC驱动程序
-//             Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.jdbc.Driver");
 
             // 打开连接
             System.out.println("连接到数据库...");
             conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_stu?useSSL=false","root","root");
+            stmt = conn.createStatement();
         } catch (SQLException se) {
             // 处理JDBC错误
             se.printStackTrace();
@@ -32,19 +35,17 @@ public class DatabaseConnect {
         }
     }
 
-    public boolean querySno(String sno, String pwd) throws SQLException {
+    public boolean query(String username, String password) throws SQLException {
         // 执行查询
-        System.out.println("查询sno为" + sno);
-        Statement stmt = conn.createStatement();
+        System.out.println("查询username为" + username);
 
-        String sql;
-        sql = "SELECT password FROM user where sno='" + sno + "'";
+        sql = "SELECT password FROM user where username='" + username + "'";
         ResultSet rs = stmt.executeQuery(sql);
 
         // 处理结果集
         if (rs.next()) {
             // 检索每列
-            String password = rs.getString("password");
+            String pwd = rs.getString("password");
 
             // 清理环境
             rs.close();
@@ -55,5 +56,11 @@ public class DatabaseConnect {
         rs.close();
         stmt.close();
         return false;
+    }
+
+    public boolean insert(String username, String password) throws SQLException {
+        sql = "INSERT INTO user values('" + username + "' ,'" + password + "');";
+        int rowsAffected = stmt.executeUpdate(sql);
+        return rowsAffected > 0;
     }
 }

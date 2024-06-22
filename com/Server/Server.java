@@ -7,9 +7,10 @@
  * @Version: 1.0
  */
 
-package Server;
+package com.Server;
 
-import DataBase.DatabaseConnect;
+import com.DataBase.DatabaseConnect;
+import secret.AES;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -22,13 +23,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 
 public class Server extends JFrame {
@@ -48,33 +48,26 @@ public class Server extends JFrame {
         System.out.println("服务器正在端口" + port + "上运行....");
     }
 
-    public void start() {
+    public void listen() throws IOException {
         while (true) {
-            try {
-                // 等待客户端进行连接
-                Socket socket = serverSocket.accept();
-                System.out.println("新的客户端发送请求：" + socket);
+            // 等待客户端进行连接
+            Socket socket = serverSocket.accept();
+            System.out.println("新的客户端发送请求：" + socket);
 
-                // 创建一个新的线程用于处理客户的请求
-                ClientAgent client = new ClientAgent(socket);
+            // 创建一个新的线程用于处理客户的请求
+            ClientAgent client = new ClientAgent(socket);
 
-                // 添加到当前所有用户请求的列表中
-                clients.add(client);
-                client.start();
-            } catch (IOException e) {
-                System.out.println("Error in server: " + e.getMessage());
-                break;
-            }
+            // 添加到当前所有用户请求的列表中
+            clients.add(client);
+            client.start();
         }
     }
 
     // 当一个用户发送消息时将该消息给所有连接的客户端
-    public synchronized void broadcastMessage(String message, ClientAgent me) {
-        for (ClientAgent client : clients) {
-            if (client != me) {
+    public synchronized void broadcastMessage(String message, ClientAgent me) throws Exception {
+        for (ClientAgent client : clients)
+            if (client != me)
                 client.send.println(message);
-            }
-        }
     }
 
     // 处理客户端的线程
@@ -96,18 +89,17 @@ public class Server extends JFrame {
             }
         }
 
-        public void login(String username, String password) throws SQLException {
+        public void login(String username, String password) throws Exception {
             System.out.println("username:" + username + " password:" + password);
-            boolean res = db.querySno(username, password);
+            boolean res = db.query(username, password);
             if (res) {
                 // 向客户端回送登录成功true
-                send.println("true");
+                send.println("loginReply:true");
                 // 向其他在线用户发送这个用户的姓名
                 broadcastMessage("new:" + username, this);
                 // 向该用户发送当前所有在线的其他用户
-                for (String val : mp.values()) {
+                for (String val : mp.values())
                     send.println("new:" + val);
-                }
                 // 添加到在线用户列表中
                 ui.addUser(username);
                 // 添加socket-username映射
@@ -118,11 +110,18 @@ public class Server extends JFrame {
             }
             else {
                 // 登录失败
-                send.println("false");
+                send.println("loginReply:false");
             }
         }
 
-        public void exit(String username) {
+        public void register(String username, String password) throws SQLException {
+            if (db.insert(username, password))
+                send.println("registerReply:true");
+            else send.println("registerReply:false");
+            ui.showMessage("用户" + username + "注册成功");
+        }
+
+        public void exit(String username) throws Exception {
             // 通知每个用户删除这个用户
             broadcastMessage("delete:" + username, this);
             // 从服务器端界面中删除指定用户
@@ -159,15 +158,16 @@ public class Server extends JFrame {
                         int ed = message.indexOf(" ");
                         String username = message.substring(st + 1, ed);
                         String pwdOrMsg = message.substring(ed + 1);
-                        if (message.contains("login:"))
+                        if (message.contains("loginRequest:"))
                             login(username, pwdOrMsg);
-                        else
-                            privateChat(username, pwdOrMsg);
+                        else if (message.contains("registerRequest:"))
+                            register(username, pwdOrMsg);
+                        else privateChat(username, pwdOrMsg);
                     }
                 }
             } catch (IOException e) {
                 System.out.println("Error handling client: " + e.getMessage());
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             } finally {
                 try {
@@ -180,18 +180,18 @@ public class Server extends JFrame {
                     socket.close();
                     clients.remove(this);
                     System.out.println("用户断开连接: " + socket);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     System.out.println("Error closing client: " + e.getMessage());
                 }
             }
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoSuchAlgorithmException {
         int port = 10086;
         try {
             Server server = new Server(port);
-            server.start();
+            server.listen();
         } catch (IOException e) {
             System.out.println("Error starting the server: " + e.getMessage());
         }

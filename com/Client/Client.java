@@ -1,13 +1,15 @@
 /**
  * @BelongsProject: online_talk
- * @BelongsPackage: Client
+ * @BelongsPackage: com.Client
  * @Author: 弘树
  * @CreateTime: 2024-06-18  14:19
  * @Description: 客户端代码实现
  * @Version: 1.0
  */
 
-package Client;
+package com.Client;
+
+import com.GUI.LoginUI;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -22,9 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Client extends JFrame {
-    private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
+    private final Socket socket;
+    private final BufferedReader receive;
+    private final PrintWriter send;
     private String chatUserName;
 
     // 界面绘制
@@ -36,37 +38,43 @@ public class Client extends JFrame {
 
     private final Map<String, JTextArea> mp = new HashMap<>();
 
-    public Client(int num) {
-        createUi();
-    }
-
     public Client() throws IOException {
         // 创建TCP连接
         socket = new Socket("localhost", 10086);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
+        receive = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        send = new PrintWriter(socket.getOutputStream(), true);
     }
 
     public boolean loginCheck(String username, String password) throws IOException {
         // 发送登录命令
-        out.println("login:" + username + " " + password);
+        send.println("loginRequest:" + username + " " + password);
 
         String message;
-        if ((message = in.readLine()) != null) {
+        if ((message = receive.readLine()) != null) {
             System.out.println(message);
-            return message.equals("true");
+            return message.equals("loginReply:true");
         }
         return false;
     }
 
-    public void loginSuccess() {
+    public boolean registerCheck(String username, String password) throws IOException {
+        send.println("registerRequest:" + username + " " + password);
+        String message;
+        if ((message = receive.readLine()) != null) {
+            System.out.println(message);
+            return message.equals("registerReply:true");
+        }
+        return false;
+    }
+
+    public void loginSuccess(String username) {
         // 显示聊天界面
-        createUi();
+        createUI(username);
         // 启动接收消息的线程
         new Thread(new ServerAgent()).start();
     }
 
-    private void createUi() {
+    private void createUI(String username) {
         UIManager.put("TabbedPane.font", new Font("黑体", Font.PLAIN, 17));
 
         // 字体设置
@@ -81,6 +89,7 @@ public class Client extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(1000, 700);
         this.setLocationRelativeTo(null); // 居中显示
+        this.setResizable(false);
 
         // 布局设置为边界布局
         this.setLayout(new BorderLayout());
@@ -95,7 +104,7 @@ public class Client extends JFrame {
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
 
-        JLabel label = new JLabel("      请输入文字     →");
+        JLabel label = new JLabel(" 当前用户：" + username + "   请输入：");
         label.setFont(labelFont);
         bottomPanel.add(label, BorderLayout.WEST);
 
@@ -145,7 +154,13 @@ public class Client extends JFrame {
         });
         this.add(leftPanel, BorderLayout.WEST);
         // 按钮事件监听
-        sendButton.addActionListener(e -> sendMessage());
+        sendButton.addActionListener(e -> {
+            try {
+                sendMessage();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         chatButton.addActionListener(e -> chatWithUser());
         // 显示窗口
         setVisible(true);
@@ -160,7 +175,7 @@ public class Client extends JFrame {
         tabbedPane.addTab(title, scrollPane);
     }
 
-    private void sendMessage() {
+    private void sendMessage() throws Exception {
         String message = messageField.getText().trim();
         if (!message.isEmpty()) {
             // 在聊天区域显示消息
@@ -170,9 +185,10 @@ public class Client extends JFrame {
 
             // 将消息发送给服务器
             if (username.equals("群聊"))
-                out.println("message:" + message);
+                message = "message:" + message;
             else
-                out.println("messageOnly:" + username + " " + message);
+                message = "messageOnly:" + username + " " + message;
+            send.println(message);
         }
     }
 
@@ -220,7 +236,7 @@ public class Client extends JFrame {
             String message;
             while (true) {
                 try {
-                    if ((message = in.readLine()) == null) break;
+                    if ((message = receive.readLine()) == null) break;
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -239,12 +255,14 @@ public class Client extends JFrame {
                 }
                 // 3.强制下线
                 else if (message.contains("exit")) {
+                    JOptionPane.showMessageDialog(Client.this,
+                            "您已被服务器强制下线",
+                            "下线提示", JOptionPane.WARNING_MESSAGE);
                     dispose();
                     return ;
                 }
                 // 4.解除禁言
                 else if (message.contains("dismute")) {
-                    System.out.println("23432243");
                     sendButton.setEnabled(true);
                     chatButton.setEnabled(true);
                     sendButton.setText("发送消息");
@@ -259,9 +277,5 @@ public class Client extends JFrame {
                 else newMessage(message);
             }
         }
-    }
-
-    public static void main(String[] args) {
-        new Client(1);
     }
 }
