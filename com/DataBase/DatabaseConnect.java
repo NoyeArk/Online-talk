@@ -14,7 +14,6 @@ import java.sql.*;
 
 public class DatabaseConnect {
     private String sql;
-    private Statement stmt;
     private static Connection conn = null;
 
     public DatabaseConnect() {
@@ -25,7 +24,7 @@ public class DatabaseConnect {
             // 打开连接
             System.out.println("连接到数据库...");
             conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_stu?useSSL=false","root","root");
-            stmt = conn.createStatement();
+
         } catch (SQLException se) {
             // 处理JDBC错误
             se.printStackTrace();
@@ -36,6 +35,7 @@ public class DatabaseConnect {
     }
 
     public boolean query(String username, String password) throws SQLException {
+        Statement stmt = conn.createStatement();
         // 执行查询
         System.out.println("查询username为" + username);
 
@@ -59,6 +59,7 @@ public class DatabaseConnect {
     }
 
     public boolean insert(String username, String password) throws SQLException {
+        Statement stmt = conn.createStatement();
         sql = "INSERT INTO user values('" + username + "' ,'" + password + "');";
         int rowsAffected = stmt.executeUpdate(sql);
         return rowsAffected > 0;
